@@ -2,8 +2,11 @@ import OpenAI from "openai";
 import { buildSecurityPrompt } from "../prompts/securityPrompt";
 import type { AnalyzeResponseBody } from "../types";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const MODEL = process.env.OPENAI_MODEL || "gpt-5.6";
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
+const MODEL = process.env.OPENAI_MODEL || "llama-3.3-70b-versatile";
 
 export async function analyzeCodeWithAI(
   language: string,
