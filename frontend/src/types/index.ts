@@ -52,3 +52,27 @@ export interface SidebarFilters {
   languages: SupportedLanguage[];
   owaspCategories: string[];
 }
+
+export interface AnalyzeRequestBody {
+  language: string;
+  code: string;
+}
+
+export interface BackendVulnerability {
+  name: string;
+  severity: Severity;
+  fileName: string;
+  lineNumber: number;
+  owaspCategory: string;
+  description: string;
+  whyItMatters: string;
+  recommendedFix: string;
+  codeBefore: string;
+  codeAfter: string;
+}
+
+export interface AnalyzeResponseBody {
+  securityScore: number;
+  riskStatus: ScanSummary["riskStatus"];
+  vulnerabilities: BackendVulnerability[];
+}

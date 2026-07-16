@@ -19,11 +19,12 @@ const SAMPLE_CODE = `app.get('/user/:id', (req, res) => {
 });`;
 
 interface CodeEditorProps {
-  onScan: () => void;
+  onScan: (language: SupportedLanguage, code: string) => void;
   isScanning: boolean;
+  error?: string | null;
 }
 
-export default function CodeEditor({ onScan, isScanning }: CodeEditorProps) {
+export default function CodeEditor({ onScan, isScanning, error }: CodeEditorProps) {
   const [language, setLanguage] = useState<SupportedLanguage>("JavaScript");
   const [code, setCode] = useState(SAMPLE_CODE);
   const [langOpen, setLangOpen] = useState(false);
@@ -120,7 +121,7 @@ export default function CodeEditor({ onScan, isScanning }: CodeEditorProps) {
                 Clear
               </button>
               <button
-                onClick={onScan}
+                onClick={() => onScan(language, code)}
                 disabled={isScanning || code.trim().length === 0}
                 className="focus-ring flex items-center gap-2 rounded-md bg-gradient-to-r from-blue to-violet px-4 py-2 text-xs font-semibold text-white shadow-md shadow-blue-dim/20 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
               >
@@ -130,6 +131,12 @@ export default function CodeEditor({ onScan, isScanning }: CodeEditorProps) {
             </div>
           </div>
         </motion.div>
+
+        {error && (
+          <p className="mt-4 rounded-lg border border-critical/30 bg-critical/10 px-4 py-3 text-center text-sm text-critical">
+            {error}
+          </p>
+        )}
       </div>
     </section>
   );
