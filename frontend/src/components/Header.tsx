@@ -46,7 +46,7 @@ export default function Header({ onStartScanning }: HeaderProps) {
 
         <button
           onClick={onStartScanning}
-          className="focus-ring rounded-lg bg-gradient-to-r from-blue to-violet px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-dim/20 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
+          className="focus-ring rounded-lg bg-blue px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-dim/20 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
         >
           Start Scanning
         </button>

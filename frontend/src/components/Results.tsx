@@ -7,7 +7,7 @@ import {
   Info,
   FileCode2,
 } from "lucide-react";
-import type { ScanResult, Severity, SidebarFilters, SupportedLanguage } from "../types";
+import type { AnalysisLensId, ScanResult, Severity, SidebarFilters, SupportedLanguage } from "../types";
 import Sidebar from "./Sidebar";
 import VulnerabilityCard from "./VulnerabilityCard";
 import ChatPanel from "./ChatPanel";
@@ -41,7 +41,7 @@ const RISK_BADGE: Record<
 };
 
 export default function Results({ result }: ResultsProps) {
-  const { summary, vulnerabilities } = result;
+  const { summary, vulnerabilities, analysisLenses } = result;
   const scoreColor = getScoreColor(summary.securityScore);
   const riskStyle = RISK_BADGE[summary.riskStatus];
 
@@ -86,6 +86,10 @@ export default function Results({ result }: ResultsProps) {
             {summary.linesScanned.toLocaleString()} lines scanned in{" "}
             {(summary.scanDurationMs / 1000).toFixed(1)}s across{" "}
             <span className="text-text-primary">{summary.scannedFileName}</span>
+          </p>
+          <p className="mt-2 text-xs text-text-muted">
+            {summary.checksReviewed} mandatory security checks completed
+            {summary.checksNeedContext > 0 && ` · ${summary.checksNeedContext} need deployment or operational context`}
           </p>
         </div>
 
@@ -141,6 +145,30 @@ export default function Results({ result }: ResultsProps) {
             accent="text-low"
           />
         </motion.div>
+
+        <div className="mb-8 rounded-xl border border-border bg-surface p-5">
+          <div className="mb-4">
+            <p className="text-sm font-medium text-text-primary">Analysis safeguards</p>
+            <p className="mt-1 text-xs text-text-muted">
+              Evidence and verification guidance for the scanner’s four high-risk blind spots.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {analysisLenses.map((lens) => (
+              <div key={lens.lensId} className="rounded-lg border border-border bg-surface-2 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-medium text-text-primary">{LENS_LABELS[lens.lensId]}</p>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${lens.status === "needs_context" ? "bg-medium/15 text-medium" : "bg-blue/15 text-blue"}`}>
+                    {lens.status.replaceAll("_", " ")}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-text-secondary">{lens.evidence}</p>
+                <p className="mt-2 text-xs leading-relaxed text-text-muted">Limit: {lens.limitation}</p>
+                <p className="mt-2 text-xs leading-relaxed text-blue">Next: {lens.recommendedNextStep}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Main layout: sidebar / list / chat */}
         <div className="flex flex-col gap-6 lg:flex-row">
@@ -255,3 +283,10 @@ function ScoreRing({ score }: { score: number }) {
     </svg>
   );
 }
+
+const LENS_LABELS: Record<AnalysisLensId, string> = {
+  cross_boundary_flow: "Cross-boundary data flow",
+  business_logic_context: "Business-logic context",
+  exploitability_without_execution: "Exploitability review",
+  patch_safety: "Patch safety",
+};

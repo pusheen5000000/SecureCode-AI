@@ -126,7 +126,7 @@ export default function CodeEditor({ onScan, onUpload, isScanning, error }: Code
               <button
                 onClick={() => onScan(language, code)}
                 disabled={isScanning || code.trim().length === 0}
-                className="focus-ring flex items-center gap-2 rounded-md bg-gradient-to-r from-blue to-violet px-4 py-2 text-xs font-semibold text-white shadow-md shadow-blue-dim/20 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                className="focus-ring flex items-center gap-2 rounded-md bg-blue px-4 py-2 text-xs font-semibold text-white shadow-md shadow-blue-dim/20 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
               >
                 <ScanLine className="h-3.5 w-3.5" />
                 {isScanning ? "Scanning…" : "Scan Code"}
@@ -149,7 +149,7 @@ export default function CodeEditor({ onScan, onUpload, isScanning, error }: Code
               <button onClick={() => uploadInput.current?.click()} className="focus-ring rounded-md border border-border px-3 py-2 text-xs font-medium text-text-secondary hover:border-border-hover hover:text-text-primary">
                 {archive ? "Choose another" : "Choose ZIP"}
               </button>
-              <button onClick={() => archive && onUpload(archive)} disabled={isScanning || !archive} className="focus-ring flex items-center gap-2 rounded-md bg-gradient-to-r from-blue to-violet px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+              <button onClick={() => archive && onUpload(archive)} disabled={isScanning || !archive} className="focus-ring flex items-center gap-2 rounded-md bg-blue px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
                 <Upload className="h-3.5 w-3.5" />
                 {isScanning ? "Scanning…" : "Upload & Scan"}
               </button>

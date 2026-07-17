@@ -50,7 +50,7 @@ export default function Hero({ onStartScanning }: HeroProps) {
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <button
               onClick={onStartScanning}
-              className="focus-ring group flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue to-violet px-5 py-3 text-sm font-medium text-white shadow-lg shadow-blue-dim/30 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="focus-ring group flex items-center gap-2 rounded-lg bg-blue px-5 py-3 text-sm font-medium text-white shadow-lg shadow-blue-dim/30 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               Start Scanning
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

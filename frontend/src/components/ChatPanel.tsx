@@ -136,7 +136,7 @@ export default function ChatPanel({ initialMessages }: ChatPanelProps) {
         <button
           type="submit"
           disabled={!input.trim()}
-          className="focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue to-violet text-white transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+          className="focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue text-white transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
         >
           <Send className="h-4 w-4" />
         </button>

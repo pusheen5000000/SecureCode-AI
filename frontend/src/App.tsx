@@ -9,15 +9,16 @@ import type {
   SupportedLanguage,
   Vulnerability,
 } from "./types";
+import { groupVulnerabilities } from "./utils/groupVulnerabilities";
 
 const API_URL = "http://localhost:3001/api/analyze";
 
 function toScanResult(data: AnalyzeResponseBody, language: SupportedLanguage, code: string, fileName = "submitted-code"): ScanResult {
-  const vulnerabilities: Vulnerability[] = data.vulnerabilities.map((v, i) => ({
+  const vulnerabilities = groupVulnerabilities(data.vulnerabilities.map((v, i): Vulnerability => ({
     ...v,
     id: `vuln-${i}`,
     language,
-  }));
+  })));
 
   return {
     summary: {
@@ -33,8 +34,11 @@ function toScanResult(data: AnalyzeResponseBody, language: SupportedLanguage, co
       scannedLanguage: language,
       linesScanned: data.linesScanned ?? code.split("\n").length,
       scanDurationMs: 0,
+      checksReviewed: data.coverage.length,
+      checksNeedContext: data.coverage.filter((check) => check.status === "needs_context").length,
     },
     vulnerabilities,
+    analysisLenses: data.analysisLenses,
   };
 }
 

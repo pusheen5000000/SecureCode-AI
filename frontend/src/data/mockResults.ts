@@ -171,6 +171,8 @@ export const mockScanResult: ScanResult = {
     scannedLanguage: "JavaScript",
     linesScanned: 1284,
     scanDurationMs: 2140,
+    checksReviewed: 38,
+    checksNeedContext: 6,
   },
   vulnerabilities: mockVulnerabilities,
 };
