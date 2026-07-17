@@ -76,5 +76,5 @@ body {
   color: transparent;
 }
 
-.focus-ring { outline: none; }
-.focus-ring:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px; }
+.focus-ring { outline: none; cursor: pointer; }
+.focus-ring:focus-visible { outline: 2px solid var(--color-blue); outline-offset: 2px;}
