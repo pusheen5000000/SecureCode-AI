@@ -12,11 +12,7 @@ import type {
 
 const API_URL = "http://localhost:3001/api/analyze";
 
-function toScanResult(
-  data: AnalyzeResponseBody,
-  language: SupportedLanguage,
-  code: string
-): ScanResult {
+function toScanResult(data: AnalyzeResponseBody, language: SupportedLanguage, code: string, fileName = "submitted-code"): ScanResult {
   const vulnerabilities: Vulnerability[] = data.vulnerabilities.map((v, i) => ({
     ...v,
     id: `vuln-${i}`,
@@ -33,9 +29,9 @@ function toScanResult(
       ).length,
       mediumSeverity: vulnerabilities.filter((v) => v.severity === "Medium").length,
       lowSeverity: vulnerabilities.filter((v) => v.severity === "Low").length,
-      scannedFileName: vulnerabilities[0]?.fileName ?? "submitted-code",
+      scannedFileName: vulnerabilities[0]?.fileName ?? fileName,
       scannedLanguage: language,
-      linesScanned: code.split("\n").length,
+      linesScanned: data.linesScanned ?? code.split("\n").length,
       scanDurationMs: 0,
     },
     vulnerabilities,
@@ -77,11 +73,31 @@ export default function App() {
     }
   }
 
+  async function handleArchiveUpload(file: File) {
+    setIsScanning(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("archive", file);
+      const res = await fetch(`${API_URL}/archive`, { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Archive scan failed. Please try again.");
+
+      setResult(toScanResult(data as AnalyzeResponseBody, "TypeScript", "", file.name));
+      setTimeout(() => document.getElementById("results")?.scrollIntoView({ behavior: "smooth" }), 100);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't reach the scanning service. Is the backend running?");
+    } finally {
+      setIsScanning(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-bg">
       <Header onStartScanning={scrollToScan} />
       <Hero onStartScanning={scrollToScan} />
-      <CodeEditor onScan={handleScan} isScanning={isScanning} error={error} />
+      <CodeEditor onScan={handleScan} onUpload={handleArchiveUpload} isScanning={isScanning} error={error} />
       {result && <Results result={result} />}
       <footer
         id="footer"

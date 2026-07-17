@@ -75,4 +75,6 @@ export interface AnalyzeResponseBody {
   securityScore: number;
   riskStatus: ScanSummary["riskStatus"];
   vulnerabilities: BackendVulnerability[];
+  scannedFiles?: number;
+  linesScanned?: number;
 }

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Trash2, ScanLine, ChevronDown } from "lucide-react";
+import { Trash2, ScanLine, ChevronDown, FileArchive, Upload } from "lucide-react";
 import type { SupportedLanguage } from "../types";
 
 const LANGUAGES: SupportedLanguage[] = [
@@ -20,14 +20,17 @@ const SAMPLE_CODE = `app.get('/user/:id', (req, res) => {
 
 interface CodeEditorProps {
   onScan: (language: SupportedLanguage, code: string) => void;
+  onUpload: (file: File) => void;
   isScanning: boolean;
   error?: string | null;
 }
 
-export default function CodeEditor({ onScan, isScanning, error }: CodeEditorProps) {
+export default function CodeEditor({ onScan, onUpload, isScanning, error }: CodeEditorProps) {
   const [language, setLanguage] = useState<SupportedLanguage>("JavaScript");
   const [code, setCode] = useState(SAMPLE_CODE);
   const [langOpen, setLangOpen] = useState(false);
+  const [archive, setArchive] = useState<File | null>(null);
+  const uploadInput = useRef<HTMLInputElement>(null);
 
   const charCount = code.length;
   const lineCount = code.split("\n").length;
@@ -131,6 +134,29 @@ export default function CodeEditor({ onScan, isScanning, error }: CodeEditorProp
             </div>
           </div>
         </motion.div>
+
+        <div className="mt-5 rounded-xl border border-dashed border-border-hover bg-surface px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-violet/15 p-2 text-violet"><FileArchive className="h-5 w-5" /></div>
+              <div>
+                <p className="text-sm font-medium text-text-primary">Scan a project ZIP</p>
+                <p className="text-xs text-text-muted">Upload a ZIP with JavaScript, TypeScript, Python, Java, or C++ files.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input ref={uploadInput} type="file" accept=".zip,application/zip" className="hidden" onChange={(e) => setArchive(e.target.files?.[0] ?? null)} />
+              <button onClick={() => uploadInput.current?.click()} className="focus-ring rounded-md border border-border px-3 py-2 text-xs font-medium text-text-secondary hover:border-border-hover hover:text-text-primary">
+                {archive ? "Choose another" : "Choose ZIP"}
+              </button>
+              <button onClick={() => archive && onUpload(archive)} disabled={isScanning || !archive} className="focus-ring flex items-center gap-2 rounded-md bg-gradient-to-r from-blue to-violet px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+                <Upload className="h-3.5 w-3.5" />
+                {isScanning ? "Scanning…" : "Upload & Scan"}
+              </button>
+            </div>
+          </div>
+          {archive && <p className="mt-3 text-xs text-blue">Selected: {archive.name} ({Math.ceil(archive.size / 1024)} KB)</p>}
+        </div>
 
         {error && (
           <p className="mt-4 rounded-lg border border-critical/30 bg-critical/10 px-4 py-3 text-center text-sm text-critical">
