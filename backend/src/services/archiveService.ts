@@ -3,8 +3,9 @@ import { analyzeCodeWithAI } from "./openaiService";
 import type { AnalyzeResponseBody } from "../types";
 
 const MAX_FILES = 100;
-const MAX_FILE_BYTES = 100_000;
-const MAX_TOTAL_BYTES = 1_000_000;
+// Keep ZIP input comfortably below Llama's 12k-token request budget.
+const MAX_FILE_BYTES = 12_000;
+const MAX_TOTAL_BYTES = 24_000;
 
 const languageForFile = (fileName: string): string | null => {
   const baseName = fileName.split("/").pop()?.toLowerCase();
