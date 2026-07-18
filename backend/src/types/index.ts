@@ -51,6 +51,7 @@ export interface AnalyzeResponseBody {
   vulnerabilities: Vulnerability[];
   coverage: SecurityCheckCoverage[];
   analysisLenses: AnalysisLensResult[];
+  scanPlan?: import("../services/scanPlanner").ScanPlan;
 }
 
 export interface ChatMessageInput {

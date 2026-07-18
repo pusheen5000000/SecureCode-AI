@@ -1,6 +1,8 @@
 import { securityChecklistForPrompt } from "../securityCatalog";
+import type { ScanPlan } from "../services/scanPlanner";
+import { formatScanPlanForPrompt } from "../services/scanPlanner";
 
-export function buildSecurityPrompt(language: string, code: string): string {
+export function buildSecurityPrompt(language: string, code: string, scanPlan?: ScanPlan): string {
   return `You are a senior application security engineer. Analyze the following ${language} source code for security vulnerabilities.
 
 Rules:
@@ -69,5 +71,5 @@ The analysisLenses array MUST contain exactly one entry for each of these IDs: c
 Source code to analyze:
 \`\`\`${language}
 ${code}
-\`\`\``;
+\`\`\`${scanPlan ? formatScanPlanForPrompt(scanPlan) : ""}`;
 }

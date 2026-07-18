@@ -112,4 +112,13 @@ export interface AnalyzeResponseBody {
   analysisLenses: AnalysisLensResult[];
   scannedFiles?: number;
   linesScanned?: number;
+  scanPlan?: {
+    defaultDepth: "surface" | "deep";
+    entries: Array<{
+      fileName: string;
+      depth: "surface" | "deep";
+      score: number;
+      reasons: string[];
+    }>;
+  };
 }

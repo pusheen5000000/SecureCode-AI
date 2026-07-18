@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { buildSecurityPrompt } from "../prompts/securityPrompt";
 import type { AnalysisLensId, AnalyzeResponseBody, ChatMessageInput } from "../types";
 import { SECURITY_CHECKS } from "../securityCatalog";
+import { buildDeterministicScanPlan, type ScanPlan } from "./scanPlanner";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -13,9 +14,15 @@ const MODEL = process.env.OPENAI_MODEL || "llama-3.3-70b-versatile";
 
 export async function analyzeCodeWithAI(
   language: string,
-  code: string
+  code: string,
+  scanPlan?: ScanPlan
 ): Promise<AnalyzeResponseBody> {
-  const prompt = buildSecurityPrompt(language, code);
+  // Snippet scans use the same deterministic router as archives; an archive
+  // supplies its per-file plan while a pasted portion is a single target.
+  const effectiveScanPlan = scanPlan ?? buildDeterministicScanPlan([
+    { fileName: "submitted-snippet", language, source: code },
+  ]);
+  const prompt = buildSecurityPrompt(language, code, effectiveScanPlan);
 
   const completion = await client.chat.completions.create({
     model: MODEL,

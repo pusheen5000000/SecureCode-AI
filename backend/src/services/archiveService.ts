@@ -1,11 +1,13 @@
 import AdmZip from "adm-zip";
 import { analyzeCodeWithAI } from "./openaiService";
 import type { AnalyzeResponseBody } from "../types";
+import { buildDeterministicScanPlan, type ScanPlan, type ScanTarget } from "./scanPlanner";
 
 const MAX_FILES = 100;
 // Keep ZIP input comfortably below Llama's 12k-token request budget.
-const MAX_FILE_BYTES = 12_000;
+const MAX_CHUNK_BYTES = 6_000;
 const MAX_TOTAL_BYTES = 24_000;
+const MAX_EXPANDED_FILE_BYTES = 1_000_000;
 
 const languageForFile = (fileName: string): string | null => {
   const baseName = fileName.split("/").pop()?.toLowerCase();
@@ -83,13 +85,12 @@ const languageForFile = (fileName: string): string | null => {
 export interface ArchiveAnalysis extends AnalyzeResponseBody {
   scannedFiles: number;
   linesScanned: number;
+  scanPlan: ScanPlan;
 }
 
 export async function analyzeArchive(buffer: Buffer): Promise<ArchiveAnalysis> {
   const zip = new AdmZip(buffer);
-  let totalBytes = 0;
-  let linesScanned = 0;
-  const files: string[] = [];
+  const candidates: ScanTarget[] = [];
 
   for (const entry of zip.getEntries()) {
     const fileName = entry.entryName.replace(/\\/g, "/");
@@ -98,23 +99,71 @@ export async function analyzeArchive(buffer: Buffer): Promise<ArchiveAnalysis> {
 
     if (entry.isDirectory || !language || isIgnored) continue;
     if (fileName.startsWith("/") || fileName.includes("../")) continue;
-    if (entry.header.size > MAX_FILE_BYTES) continue;
-    if (files.length >= MAX_FILES || totalBytes + entry.header.size > MAX_TOTAL_BYTES) break;
+    // Analyze bounded portions of large files instead of silently dropping
+    // them; retain a decompression guard for hostile ZIPs.
+    if (entry.header.size > MAX_EXPANDED_FILE_BYTES || candidates.length >= MAX_FILES) continue;
 
     const source = entry.getData().toString("utf8");
-    totalBytes += Buffer.byteLength(source, "utf8");
-    linesScanned += source.split("\n").length;
-    files.push(`File: ${fileName}\nLanguage: ${language}\n\n${source}`);
+    candidates.push(...splitIntoScanTargets(fileName, language, source));
   }
 
-  if (files.length === 0) {
+  if (candidates.length === 0) {
     throw new Error("No supported source files were found in this ZIP archive");
   }
 
+  const candidatePlan = buildDeterministicScanPlan(candidates);
+  let totalBytes = 0;
+  const files = [...candidates].sort((a, b) => {
+    const aPlan = candidatePlan.entries.find((entry) => entry.fileName === a.fileName)!;
+    const bPlan = candidatePlan.entries.find((entry) => entry.fileName === b.fileName)!;
+    return bPlan.score - aPlan.score || a.fileName.localeCompare(b.fileName);
+  }).filter((file) => {
+    const bytes = Buffer.byteLength(file.source, "utf8");
+    if (totalBytes + bytes > MAX_TOTAL_BYTES) return false;
+    totalBytes += bytes;
+    return true;
+  });
+
+  if (files.length === 0) {
+    throw new Error("No supported source portions fit within the scan budget");
+  }
+
+  const scanPlan = buildDeterministicScanPlan(files);
+  const linesScanned = files.reduce((total, file) => total + file.source.split("\n").length, 0);
   const result = await analyzeCodeWithAI(
     "source files from a ZIP archive",
-    files.join("\n\n--- END FILE ---\n\n")
+    files.map((file) => `File: ${file.fileName}\nLanguage: ${file.language}\n\n${file.source}`).join("\n\n--- END FILE ---\n\n"),
+    scanPlan
   );
 
-  return { ...result, scannedFiles: files.length, linesScanned };
+  return { ...result, scannedFiles: new Set(files.map((file) => file.fileName.replace(/#L\d+-\d+$/, ""))).size, linesScanned, scanPlan };
+}
+
+function splitIntoScanTargets(fileName: string, language: string, source: string): ScanTarget[] {
+  if (Buffer.byteLength(source, "utf8") <= MAX_CHUNK_BYTES) {
+    return [{ fileName, language, source }];
+  }
+
+  const chunks: ScanTarget[] = [];
+  const lines = source.split("\n");
+  let chunk: string[] = [];
+  let chunkBytes = 0;
+  let startLine = 1;
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const lineBytes = Buffer.byteLength(`${line}\n`, "utf8");
+    if (chunk.length > 0 && chunkBytes + lineBytes > MAX_CHUNK_BYTES) {
+      chunks.push({ fileName: `${fileName}#L${startLine}-${index}`, language, source: chunk.join("\n") });
+      chunk = [];
+      chunkBytes = 0;
+      startLine = index + 1;
+    }
+    chunk.push(line);
+    chunkBytes += lineBytes;
+  }
+  if (chunk.length > 0) {
+    chunks.push({ fileName: `${fileName}#L${startLine}-${lines.length}`, language, source: chunk.join("\n") });
+  }
+  return chunks;
 }
