@@ -1,4 +1,3 @@
-import { ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface HeaderProps {
@@ -15,9 +14,7 @@ export default function Header({ onStartScanning }: HeaderProps) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue to-violet">
-            <ShieldCheck className="h-5 w-5 text-white" strokeWidth={2.4} />
-          </div>
+          <img src="/logo.png" alt="SecureCode AI logo" className="h-9 w-9" />
           <span className="font-display text-lg font-semibold tracking-tight text-text-primary">
             SecureCode <span className="text-gradient">AI</span>
           </span>
