@@ -14,7 +14,7 @@ export default function Header({ onStartScanning }: HeaderProps) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <img src="/logo.png" alt="SecureCode AI logo" className="h-9 w-9" />
+          <img src="../../assets/images/logo.png" alt="SecureCode AI logo" className="h-9 w-9" />
           <span className="font-display text-lg font-semibold tracking-tight text-text-primary">
             SecureCode <span className="text-gradient">AI</span>
           </span>
