@@ -50,6 +50,10 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+export interface ChatResponseBody {
+  message: string;
+}
+
 export interface SidebarFilters {
   severities: Severity[];
   languages: SupportedLanguage[];

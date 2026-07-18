@@ -52,3 +52,17 @@ export interface AnalyzeResponseBody {
   coverage: SecurityCheckCoverage[];
   analysisLenses: AnalysisLensResult[];
 }
+
+export interface ChatMessageInput {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatRequestBody {
+  messages: ChatMessageInput[];
+  scanContext?: AnalyzeResponseBody;
+}
+
+export interface ChatResponseBody {
+  message: string;
+}

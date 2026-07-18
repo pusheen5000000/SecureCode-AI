@@ -11,7 +11,6 @@ import type { AnalysisLensId, ScanResult, Severity, SidebarFilters, SupportedLan
 import Sidebar from "./Sidebar";
 import VulnerabilityCard from "./VulnerabilityCard";
 import ChatPanel from "./ChatPanel";
-import { mockChatMessages } from "../data/mockResults";
 import { getScoreColor } from "../utils/severity";
 
 interface ResultsProps {
@@ -214,7 +213,7 @@ export default function Results({ result }: ResultsProps) {
           {/* AI Assistant panel */}
           <div className="w-full shrink-0 lg:w-96">
             <div className="lg:sticky lg:top-24 lg:h-[640px]">
-              <ChatPanel initialMessages={mockChatMessages} />
+              <ChatPanel result={result} />
             </div>
           </div>
         </div>
