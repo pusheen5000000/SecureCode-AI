@@ -1,0 +1,18 @@
+{
+  "name": "securecode-ai",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=securecode-ai-backend",
+    "build": "npm run build --workspaces --if-present"
+  }
+}

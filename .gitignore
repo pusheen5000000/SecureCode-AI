@@ -1,1 +1,5 @@
 .codebase-memory/
+node_modules/
+.env
+dist/
+start-local.sh

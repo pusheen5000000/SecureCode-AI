@@ -107,6 +107,7 @@ export default function App() {
         id="footer"
         className="border-t border-border py-8 text-center text-xs text-text-muted"
       >
+        SecureCode AI
       </footer>
     </div>
   );
