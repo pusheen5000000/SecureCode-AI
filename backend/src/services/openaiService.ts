@@ -35,6 +35,7 @@ export async function analyzeCodeWithAI(
     ],
     response_format: { type: "json_object" },
     temperature: 0.2,
+    max_tokens: 4096,
   });
 
   const raw = completion.choices[0]?.message?.content;
@@ -47,6 +48,7 @@ export async function analyzeCodeWithAI(
     throw new Error("AI response was not valid JSON");
   }
 
+  completeMissingCoverage(parsed);
   validateCoverage(parsed);
   validateAnalysisLenses(parsed);
 
@@ -110,6 +112,21 @@ function validateAnalysisLenses(result: AnalyzeResponseBody): void {
   ) {
     throw new Error("AI response did not account for every required analysis lens");
   }
+}
+
+function completeMissingCoverage(result: AnalyzeResponseBody): void {
+  if (!Array.isArray(result.coverage)) return;
+
+  const reported = new Set(result.coverage.map((coverage) => coverage.checkId));
+  const missing = SECURITY_CHECKS
+    .filter((check) => !reported.has(check.id))
+    .map((check) => ({
+      checkId: check.id,
+      status: "needs_context" as const,
+      rationale: "The AI response did not provide an assessment for this check; manual review is required.",
+    }));
+
+  result.coverage = [...result.coverage, ...missing];
 }
 
 function validateCoverage(result: AnalyzeResponseBody): void {

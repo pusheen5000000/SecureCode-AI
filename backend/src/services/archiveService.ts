@@ -6,29 +6,10 @@ import { buildDeterministicScanPlan, type ScanPlan, type ScanTarget } from "./sc
 const MAX_FILES = 100;
 // Keep ZIP input comfortably below Llama's 12k-token request budget.
 const MAX_CHUNK_BYTES = 6_000;
-const MAX_TOTAL_BYTES = 24_000;
+const MAX_TOTAL_BYTES = 32_000;
 const MAX_EXPANDED_FILE_BYTES = 1_000_000;
 
 const languageForFile = (fileName: string): string | null => {
-  const baseName = fileName.split("/").pop()?.toLowerCase();
-  if (
-    baseName === "package.json" || baseName === "package-lock.json" ||
-    baseName === "npm-shrinkwrap.json" || baseName === "dockerfile" ||
-    baseName === "docker-compose.yml" || baseName === "docker-compose.yaml" ||
-    baseName === ".npmrc" || baseName === ".yarnrc" || baseName === ".yarnrc.yml" ||
-    baseName === "requirements.txt" || baseName === "pipfile" ||
-    baseName === "pipfile.lock" || baseName === "poetry.lock" ||
-    baseName === "pyproject.toml" || baseName === "pom.xml" ||
-    baseName === "build.gradle" || baseName === "build.gradle.kts" ||
-    baseName === "cargo.toml" || baseName === "cargo.lock" ||
-    baseName === "go.mod" || baseName === "go.sum" ||
-    baseName === "composer.json" || baseName === "composer.lock"
-  ) return "project configuration or dependency manifest";
-
-  if (/(^|\/)\.github\/workflows\//.test(fileName) && /\.ya?ml$/i.test(fileName)) {
-    return "CI/CD workflow configuration";
-  }
-
   const extension = fileName.split(".").pop()?.toLowerCase();
   switch (extension) {
     case "js":
@@ -40,28 +21,6 @@ const languageForFile = (fileName: string): string | null => {
       return "TypeScript";
     case "py":
       return "Python";
-    case "php":
-      return "PHP";
-    case "rb":
-      return "Ruby";
-    case "go":
-      return "Go";
-    case "rs":
-      return "Rust";
-    case "cs":
-      return "C#";
-    case "kt":
-    case "kts":
-      return "Kotlin";
-    case "swift":
-      return "Swift";
-    case "html":
-    case "htm":
-      return "HTML";
-    case "sh":
-    case "bash":
-    case "zsh":
-      return "Shell";
     case "java":
       return "Java";
     case "cpp":
@@ -69,14 +28,6 @@ const languageForFile = (fileName: string): string | null => {
     case "cc":
     case "c":
       return "C++";
-    case "json":
-    case "yml":
-    case "yaml":
-    case "xml":
-    case "toml":
-    case "properties":
-    case "conf":
-      return "application configuration";
     default:
       return null;
   }
@@ -95,7 +46,7 @@ export async function analyzeArchive(buffer: Buffer): Promise<ArchiveAnalysis> {
   for (const entry of zip.getEntries()) {
     const fileName = entry.entryName.replace(/\\/g, "/");
     const language = languageForFile(fileName);
-    const isIgnored = /(^|\/)(node_modules|\.git|dist|build)(\/|$)/.test(fileName);
+    const isIgnored = /(^|\/)(node_modules|\.git|dist|build|\.venv|venv|env|\.tox|__pycache__)(\/|$)/.test(fileName);
 
     if (entry.isDirectory || !language || isIgnored) continue;
     if (fileName.startsWith("/") || fileName.includes("../")) continue;
@@ -108,7 +59,9 @@ export async function analyzeArchive(buffer: Buffer): Promise<ArchiveAnalysis> {
   }
 
   if (candidates.length === 0) {
-    throw new Error("No supported source files were found in this ZIP archive");
+    throw new Error(
+      "No supported source files were found in this ZIP archive. Supported extensions: .js, .mjs, .cjs, .ts, .tsx, .py, .java, .c, .cc, .cpp, .cxx."
+    );
   }
 
   const candidatePlan = buildDeterministicScanPlan(candidates);

@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 import path from "path";
 
-// Workspace scripts run with backend/ as the current directory. Resolve the
-// shared repository environment file explicitly before loading the app and
-// constructing its OpenAI client.
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+// Load the backend environment before importing the app, which constructs its
+// OpenAI client. This works from both src/ during development and dist/ after
+// compilation.
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const app = require("./app").default as typeof import("./app").default;
 
